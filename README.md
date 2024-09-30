@@ -1,29 +1,37 @@
-# encryption-decryption-techniques
+Encryption-Decryption-Techniques
 Objective
-The objective of this assignment is to implement a command-line program in a language of your choice that
-allows users to perform encryption and decryption using various techniques covered in the lab 2, including
-substitution ciphers, transposition ciphers, different encryption algorithms, and modes.
+This project is a command-line program that implements multiple encryption and decryption techniques. The techniques covered in this project include substitution ciphers, transposition ciphers, and advanced encryption algorithms. The goal is to provide a simple yet comprehensive tool to explore different encryption methods while ensuring that the user can encrypt and decrypt messages using a variety of options.
 
 Program Features
-1. The program should display a list of options for encryption techniques, including:
-  • Substitution cipher
-    – Shift Cipher
-    – Permutation Cipher
-  • Transposition ciphers
-    – Simple Transposition
-    – Double Transposition
-  • Vigen´ere Cipher
-  • Different encryption algorithms (e.g., AES-128, DES, 3DES)
-  • Different encryption modes (e.g., ECB, CBC, CFB, OFB)
-2. Based on the user’s selection, prompt the user to enter a message (plaintext) to be encrypted.
-3. The size of the message should be greater than the maximum size of the block used by the chosen
-encryption algorithm.
-4. After entering the message, allow the user to choose whether to enter encryption key or use a default
-key.
-5. Perform the encryption using the selected technique and encryption key.
-6. Display the encrypted message (ciphertext).
-7. Provide an option for decryption, where the user can input the ciphertext and select the appropriate
-decryption technique based on the encryption method used.
-8. If decryption is selected, prompt the user to enter the decryption key or use the same key as encryption by default.
-9. Perform decryption using the selected technique and decryption key.
-10. Display the decrypted message (plaintext).
+The program supports the following features:
+
+Encryption Techniques:
+Substitution Ciphers:
+
+Shift Cipher (Caesar Cipher): A simple cipher that shifts characters by a specified number of positions.
+Permutation Cipher: A cipher that permutes the characters of the plaintext based on a predefined pattern.
+Transposition Ciphers:
+
+Simple Transposition Cipher: Rearranges characters of the plaintext in a simple pattern (e.g., Rail Fence Cipher).
+Double Transposition Cipher: Applies two layers of transposition to the plaintext for enhanced security.
+Vigenère Cipher: A polyalphabetic substitution cipher that uses a keyword to determine the shifts in the plaintext.
+
+Advanced Encryption Algorithms:
+
+AES-128 (Advanced Encryption Standard)
+DES (Data Encryption Standard)
+3DES (Triple DES)
+Encryption Modes:
+ECB (Electronic Codebook)
+CBC (Cipher Block Chaining)
+CFB (Cipher Feedback)
+OFB (Output Feedback)
+Program Flow:
+The program displays a list of available encryption techniques.
+The user selects an encryption technique and enters the plaintext to be encrypted.
+For encryption algorithms like AES, DES, or 3DES, the size of the message must be greater than the block size of the algorithm.
+The user can choose to provide an encryption key or use a default key.
+The program encrypts the message and displays the encrypted result (ciphertext).
+The user can also choose the decryption option, where the ciphertext and decryption key are used to retrieve the original plaintext.
+Decryption:
+When the user selects decryption, they provide the ciphertext and the decryption technique. The program either uses the same key as encryption (default) or accepts a user-provided key.

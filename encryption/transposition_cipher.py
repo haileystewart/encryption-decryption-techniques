@@ -3,93 +3,124 @@
 # It rearranges the characters of the plaintext in a new order based on the transposition method.
 
 import math
-import re
-from itertools import chain
 
-# Simple Transposition Cipher Logic
-def transposition_encrypt(plaintext, key):
-    """
-    Encrypt the plaintext using a Columnar Transposition Cipher with a given key.
-    """
-    plaintext = plaintext.replace(" ", "")  # Remove spaces for simplicity
-    msg_len = len(plaintext)
+# Single Transposition Encryption
+def transposition_encrypt(message, provided_key):
+    cipher = ""
+
+    # Use the provided key
+    key = provided_key
+
+    # track key indices
+    k_indx = 0
+
+    msg_len = float(len(message))
+    msg_lst = list(message)
+    key_lst = sorted(list(key))
+
+    # calculate column of the matrix
     col = len(key)
 
-    # If the key is larger than the message, return the message unchanged
-    if col >= msg_len:
-        return plaintext
+    # calculate maximum row of the matrix
+    row = int(math.ceil(msg_len / col))
 
-    encrypted_message = ""
-    column = []
+    # add the padding character '_' in empty
+    # the empty cell of the matrix
+    fill_null = int((row * col) - msg_len)
+    msg_lst.extend('_' * fill_null)
 
-    # Form the matrix column-wise based on the key
-    for i in range(len(key)):
-        column.append(plaintext[i::len(key)])
+    # create Matrix and insert message and
+    # padding characters row-wise
+    matrix = [msg_lst[i: i + col]
+              for i in range(0, len(msg_lst), col)]
 
-    # Sort the columns by key and reassemble
-    key_dict = {i: key[i] for i in range(len(key))}
-    sorted_key = sorted(key_dict.items(), key=lambda pair: pair[1])
+    # read matrix column-wise using key
+    for _ in range(col):
+        curr_idx = key.index(key_lst[k_indx])
+        cipher += ''.join([row[curr_idx] for row in matrix])
+        k_indx += 1
 
-    for k in sorted_key:
-        encrypted_message += ''.join(column[k[0]])
+    return cipher
 
-    return encrypted_message
+# Single Transposition Decryption
+def transposition_decrypt(cipher, provided_key):
+    message = ""
 
+    # Use the provided key
+    key = provided_key
 
-def transposition_decrypt(ciphertext, key):
-    """
-    Decrypt the ciphertext using a Columnar Transposition Cipher with a given key.
-    """
-    msg_len = len(ciphertext)
+    # track key indices
+    k_indx = 0
+
+    # track message indices
+    msg_indx = 0
+    msg_len = float(len(cipher))
+    msg_lst = list(cipher)
+
+    # calculate column of the matrix
     col = len(key)
 
-    # If the key is larger than the message, return the message unchanged
-    if col >= msg_len:
-        return ciphertext
+    # calculate maximum row of the matrix
+    row = int(math.ceil(msg_len / col))
 
-    rows = math.ceil(msg_len / col)
-    empty_matrix = [""] * col
+    # convert key into list and sort
+    # alphabetically so we can access
+    # each character by its alphabetical position.
+    key_lst = sorted(list(key))
 
-    # Sort the key to create the decryption order
-    key_dict = {i: key[i] for i in range(len(key))}
-    sorted_key = sorted(key_dict.items(), key=lambda pair: pair[1])
+    # create an empty matrix to
+    # store deciphered message
+    dec_cipher = []
+    for _ in range(row):
+        dec_cipher += [[None] * col]
 
-    row_pointer = 0
-    char_pointer = 0
+    # Arrange the matrix column wise according
+    # to permutation order by adding into new matrix
+    for _ in range(col):
+        curr_idx = key.index(key_lst[k_indx])
 
-    for k in sorted_key:
-        col_idx = k[0]
-        if col_idx >= col - (rows * col - msg_len):  # Handle uneven columns
-            max_rows = rows - 1
-        else:
-            max_rows = rows
+        for j in range(row):
+            dec_cipher[j][curr_idx] = msg_lst[msg_indx]
+            msg_indx += 1
+        k_indx += 1
 
-        for r in range(max_rows):
-            empty_matrix[col_idx] += ciphertext[char_pointer]
-            char_pointer += 1
+    # convert decrypted message matrix into a string
+    try:
+        message = ''.join(sum(dec_cipher, []))
+    except TypeError:
+        raise TypeError("This program cannot handle repeating words.")
 
-    # Rebuild the message row-wise
-    decrypted_message = ''
-    for r in range(rows):
-        for col in empty_matrix:
-            if r < len(col):
-                decrypted_message += col[r]
+    null_count = message.count('_')
 
-    return decrypted_message
+    if null_count > 0:
+        return message[: -null_count]
 
+    return message
 
-# Double Transposition Cipher Logic
 def double_transposition_encrypt(plaintext, first_key, second_key):
     """
     Encrypt the plaintext using a Double Transposition Cipher with two keys.
     """
-    first_pass = transposition_encrypt(plaintext, first_key)
-    return transposition_encrypt(first_pass, second_key)
+    print(f"Debug: First Transposition with key1: {first_key}")
+    first_pass = transposition_encrypt(plaintext, provided_key=first_key)
+    print(f"Debug: Result after first transposition: {first_pass}")
 
+    print(f"Debug: Second Transposition with key2: {second_key}")
+    second_pass = transposition_encrypt(first_pass, provided_key=second_key)
+    print(f"Debug: Result after second transposition: {second_pass}")
+
+    return second_pass
 
 def double_transposition_decrypt(ciphertext, first_key, second_key):
     """
     Decrypt the ciphertext using a Double Transposition Cipher with two keys.
     """
-    first_pass = transposition_decrypt(ciphertext, second_key)
-    return transposition_decrypt(first_pass, first_key)
+    print(f"Debug: First Decryption with key2: {second_key}")
+    first_pass = transposition_decrypt(ciphertext, provided_key=second_key)
+    print(f"Debug: Result after first decryption: {first_pass}")
+
+    print(f"Debug: Second Decryption with key1: {first_key}")
+    second_pass = transposition_decrypt(first_pass, provided_key=first_key)
+    print(f"Debug: Result after second decryption: {second_pass}")
+
+    return second_pass

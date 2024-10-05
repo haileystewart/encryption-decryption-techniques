@@ -2,55 +2,81 @@
 # This script implements the Permutation Cipher for encryption and decryption.
 # It permutes the characters of the plaintext using a defined key or order.
 
-def permutation_encrypt(plaintext, key):
+import random
+from utils.padding import pad, unpad
+
+def generate_valid_block_size(message_length: int) -> int:
     """
-    Encrypt the plaintext using the Permutation Cipher with the given key.
-    :param plaintext: The message to encrypt.
-    :param key: A list of integers representing the permutation order.
-    :return: The encrypted ciphertext.
+    Generate a valid block size that is a factor of the message length.
     """
-    # Calculate the size of the block based on the key length
-    block_size = len(key)
-    ciphertext = []
-    
-    # Pad the plaintext with spaces to make it a multiple of the block size
-    padded_plaintext = plaintext + " " * (block_size - len(plaintext) % block_size)
-    
-    # Divide the plaintext into blocks of the same size as the key
-    for i in range(0, len(padded_plaintext), block_size):
-        block = padded_plaintext[i:i + block_size]
-        
-        # Permute the block according to the key
-        permuted_block = ''.join([block[key[j] - 1] for j in range(block_size)])
-        ciphertext.append(permuted_block)
+    block_sizes = [block_size for block_size in range(2, message_length + 1) if message_length % block_size == 0]
+    if not block_sizes:
+        return message_length  # Return full length if no factors found
+    return random.choice(block_sizes)
 
-    return ''.join(ciphertext)  # Do not remove spaces, as spaces are part of the text
-
-
-def permutation_decrypt(ciphertext, key):
+def generate_permutation_key(block_size: int) -> list[int]:
     """
-    Decrypt the ciphertext using the Permutation Cipher with the given key.
-    :param ciphertext: The encrypted message to decrypt.
-    :param key: A list of integers representing the permutation order.
-    :return: The decrypted plaintext.
+    Generate a random permutation key of a specified block size.
     """
-    # Calculate the size of the block based on the key length
-    block_size = len(key)
-    plaintext = []
-    
-    # Reverse the permutation key (to undo the permutation)
-    reverse_key = [key.index(i + 1) for i in range(block_size)]
+    digits = list(range(block_size))
+    random.shuffle(digits)
+    return digits
 
-    # Divide the ciphertext into blocks of the same size as the key
-    for i in range(0, len(ciphertext), block_size):
-        block = ciphertext[i:i + block_size]
-        
-        # Ensure the block is the correct size
-        if len(block) < block_size:
-            block += " " * (block_size - len(block))
+def encrypt(message: str, key: list[int] = None, block_size: int = None) -> tuple[str, list[int]]:
+    """
+    Encrypt a message using a permutation cipher with block rearrangement using a key.
+    """
+    message = message.upper().replace(" ", "").encode()  # Ensure message is in bytes and uppercase
+    message_length = len(message)
 
-        # Permute the block according to the reverse key
-        permuted_block = ''.join([block[reverse_key[j]] for j in range(block_size)])
-        plaintext.append(permuted_block)
+    # Default key and block size generation if not provided
+    if key is None or block_size is None:
+        block_size = generate_valid_block_size(message_length)
+        key = generate_permutation_key(block_size)
 
-    return ''.join(plaintext).rstrip()  # Remove padding spaces at the end
+    # Apply padding using the pad function from padding.py
+    padded_message = pad(message, block_size)
+
+    encrypted_message = b""  # Use bytes for concatenation
+    for i in range(0, len(padded_message), block_size):
+        block = padded_message[i:i + block_size]
+        rearranged_block = [block[digit] for digit in key]
+        encrypted_message += bytes(rearranged_block)
+
+    return encrypted_message.decode(), key  # Return as string for readability
+
+def decrypt(encrypted_message: str, key: list[int]) -> str:
+    """
+    Decrypt an encrypted message using a permutation cipher with block rearrangement.
+    """
+    encrypted_message = encrypted_message.encode()  # Ensure message is in bytes
+    key_length = len(key)
+    decrypted_message = b""
+
+    for i in range(0, len(encrypted_message), key_length):
+        block = encrypted_message[i:i + key_length]
+        original_block = [b""] * key_length
+        for j, digit in enumerate(key):
+            if j < len(block):
+                original_block[digit] = block[j]
+        decrypted_message += bytes(original_block)
+
+    # Remove padding using the unpad function from padding.py
+    return unpad(decrypted_message, key_length).decode()  # Return as string
+
+def main() -> None:
+    """
+    Driver function to pass message to get encrypted, then decrypted.
+    """
+    message = "HELLO WORLD"
+    encrypted_message, key = encrypt(message)
+
+    decrypted_message = decrypt(encrypted_message, key)
+    print(f"Decrypted message: {decrypted_message}")
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
+    main()
